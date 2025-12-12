@@ -6,6 +6,21 @@ if ! command -v sshd &> /dev/null; then
     exit 1
 fi
 
+# --- SSH Server Configuration ---
+SSHD_CONFIG=$PREFIX/etc/ssh/sshd_config
+
+# Check if AllowTcpForwarding is enabled, if not, enable it
+if ! grep -q "^AllowTcpForwarding yes" "$SSHD_CONFIG"; then
+    echo "Enabling AllowTcpForwarding in sshd_config..."
+    # Remove any existing AllowTcpForwarding line
+    sed -i '/^AllowTcpForwarding/d' "$SSHD_CONFIG"
+    # Add the required setting
+    echo "AllowTcpForwarding yes" >> "$SSHD_CONFIG"
+    # Restart the SSH server to apply changes
+    pkill sshd || true
+    echo "Restarting sshd..."
+fi
+
 # Start the SSH server
 sshd
 
