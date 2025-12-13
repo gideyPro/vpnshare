@@ -13,76 +13,48 @@ This project allows you to share your Android device's VPN connection with a Lin
 * **Android Device:**
     * Termux app installed.
     * An active VPN connection.
+    * `openssh` installed (via project server script).
 * **Linux PC:**
     * `ssh` client installed.
-    * `redsocks` installed.
-    * `socat` installed.
-    * `ip` command available.
+    * `sshuttle` installed (`sudo apt install sshuttle`).
 
 ## How it works
 
-The system works by creating an SSH tunnel from the Linux PC to the Android device, which establishes a SOCKS proxy. The `redsocks` service is then used to intercept all system-wide TCP traffic and forward it through the SOCKS proxy. For UDP traffic, specifically DNS, `socat` is used to create a DNS forwarder that sends queries through the SOCKS proxy. The Termux script on the Android device then forwards this traffic through the VPN connection.
+This project uses `sshuttle` to create a transparent proxy tunnel over SSH. All of your Linux PC's TCP and DNS traffic is forwarded through the Android device, which in turn routes it through its active VPN connection. This works without requiring root access on the Android device.
 
 ## Setup
 
 ### Android (Server) Side
 
 1. **Install Termux:** Install the Termux app from the Google Play Store or F-Droid.
-2. **Install necessary packages:** Open Termux and run the following commands:
+2. **Setup Server:** Copy the `server/server.sh` script to your Android device and run it.
    ```bash
-   pkg update
-   pkg install openssh
+   chmod +x server.sh
+   ./server.sh
    ```
-3. **Set up SSH key-based authentication:**
-   - On your **Linux PC**, generate an SSH key if you don't have one:
-     ```bash
-     ssh-keygen -t rsa -b 4096
-     ```
-   - Copy the public key to your Android device. A simple way is to use a temporary web server:
-     - On your **Linux PC**, navigate to your `.ssh` directory and start a web server:
-       ```bash
-       cd ~/.ssh
-       python3 -m http.server
-       ```
-     - On your **Android device**, open Termux and download the key:
-       ```bash
-       mkdir ~/.ssh
-       curl http://<your-linux-pc-ip>:8000/id_rsa.pub >> ~/.ssh/authorized_keys
-       ```
-   - **Important:** Ensure the permissions are correct on your Android device:
-     ```bash
-     chmod 700 ~/.ssh
-     chmod 600 ~/.ssh/authorized_keys
-     ```
-4. **Start the SSH server:** Start the SSH server in Termux:
-   ```bash
-   sshd
-   ```
-5. **Find the IP address:** Find the IP address of your Android device on the local network. You can do this by running the `ip addr` command in Termux.
+   This will install necessary packages (openssh) and start the server. It will display your Username and IP address.
+3. **SSH Keys (Recommended):** For a smooth experience without typing passwords, copy your PC's public SSH key to the Android device (see standard SSH key setup guides).
 
 ### Linux (Client) Side
 
-1. **Clone the repository:**
+1. **Install sshuttle:**
    ```bash
-   git clone <repository-url>
-   cd <repository-name>
+   sudo apt install sshuttle
    ```
-2. **Install dependencies:**
-   - **Debian/Ubuntu:** `sudo apt-get install redsocks socat`
-   - **Arch Linux:** `sudo pacman -S redsocks socat`
-   - **Other distributions:** Please refer to your distribution's package manager or compile from source.
-3. **Make the client script executable:**
+2. **Run the connection script:**
    ```bash
-   chmod +x client/client.sh
+   ./connect.sh
    ```
-4. **Run the client script:**
-   ```bash
-   sudo ./client/client.sh
-   ```
+3. **Enter Details:**
+   - Enter the **IP Address** shown on the Android server script.
+   - Enter the **Username** shown on the Android server script.
+   - Enter your Android/SSH password if prompted (unless using SSH keys).
+
+That's it! Your traffic is now routed through the Android device.
 
 ## Usage
 
-Once the setup is complete, all traffic from your Linux PC will be routed through your Android device's VPN connection. To stop the connection, simply press `Ctrl+C` in the terminal where the client script is running. The script will automatically and safely clean up the `iptables` rules and DNS settings.
+To stop the connection, simply press `Ctrl+C` in the terminal where `connect.sh` is running. `sshuttle` safely restores your network settings automatically.
 
 ## ⚠️ Warning
 

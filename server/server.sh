@@ -1,25 +1,55 @@
 #!/bin/bash
 
+# Function to print error and exit
+die() { echo "Error: $1" >&2; exit 1; }
+
 # Check if openssh is installed
 if ! command -v sshd &> /dev/null; then
-    echo "openssh is not installed. Please install it by running 'pkg install openssh'."
-    exit 1
+    echo "openssh is not installed. Installing..."
+    pkg update && pkg install openssh -y || die "Failed to install openssh. Please install it manually with 'pkg install openssh'."
 fi
 
-# Start the SSH server
-sshd
+# Check if sshd is already running
+if pgrep sshd >/dev/null; then
+    echo "SSH server is already running."
+else
+    echo "Starting SSH server..."
+    sshd || die "Failed to start sshd"
+fi
+
+# Ensure authentication logic is clear
+if [ ! -f "$HOME/.ssh/authorized_keys" ]; then
+    echo "----------------------------------------------------------------"
+    echo "WARNING: No SSH keys found."
+    echo "To connect, you must either:"
+    echo "1. Set a password by running the command: passwd"
+    echo "2. Copy your public key to ~/.ssh/authorized_keys"
+    echo "----------------------------------------------------------------"
+fi
 
 # Get the username
 USER=$(whoami)
 
-# Get the IP address
-IP=$(ip addr show | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d/ -f1)
-
-# Get the port
+# Get the port (Default Termux SSH port)
 PORT=8022
 
-echo "SSH server started."
-echo "On your Linux PC, use the following details to connect:"
-echo "Username: $USER"
-echo "IP Address: $IP"
-echo "Port: $PORT"
+echo ""
+echo "SSH Server Started Successfully"
+echo "----------------------------------------------------------------"
+echo "Connection Details for Linux Client:"
+echo "Username : $USER"
+echo "Port     : $PORT"
+echo "IP Addresses:"
+
+# List all non-local IPv4 addresses
+found_ip=0
+for ip in $(ip -4 addr show | grep inet | grep -v '127.0.0.1' | awk '{print $2}' | cut -d/ -f1); do
+    echo " - $ip"
+    found_ip=1
+done
+
+if [ "$found_ip" -eq 0 ]; then
+    echo " - No active network IP found (besides localhost)."
+    echo "   Ensure you are connected to Wi-Fi or have a valid network interface."
+fi
+echo "----------------------------------------------------------------"
