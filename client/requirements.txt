@@ -1,0 +1,6 @@
+customtkinter
+packaging
+pystray
+Pillow
+plyer
+packaging

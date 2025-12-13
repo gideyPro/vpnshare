@@ -17,7 +17,6 @@ else
     sshd || die "Failed to start sshd"
 fi
 
-<<<<<<< HEAD
 # Ensure authentication logic is clear
 if [ ! -f "$HOME/.ssh/authorized_keys" ]; then
     echo "----------------------------------------------------------------"
@@ -27,7 +26,7 @@ if [ ! -f "$HOME/.ssh/authorized_keys" ]; then
     echo "2. Copy your public key to ~/.ssh/authorized_keys"
     echo "----------------------------------------------------------------"
 fi
-=======
+
 # --- SSH Server Configuration ---
 SSHD_CONFIG=$PREFIX/etc/ssh/sshd_config
 
@@ -38,14 +37,16 @@ if ! grep -q "^AllowTcpForwarding yes" "$SSHD_CONFIG"; then
     sed -i '/^AllowTcpForwarding/d' "$SSHD_CONFIG"
     # Add the required setting
     echo "AllowTcpForwarding yes" >> "$SSHD_CONFIG"
-    # Restart the SSH server to apply changes
-    pkill sshd || true
-    echo "Restarting sshd..."
 fi
 
 # Start the SSH server
+# We kill any existing sshd first to ensure config changes take effect if we just modified it,
+# or simply to ensure we are starting fresh. Check properly.
+if pgrep sshd >/dev/null; then
+    echo "Restarting sshd to apply potential config changes..."
+    pkill sshd || true
+fi
 sshd
->>>>>>> 7a71f7966be2f739f7d0c5195de6d98fccf7a8a1
 
 # Get the username
 USER=$(whoami)

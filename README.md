@@ -53,8 +53,62 @@ This project uses `sshuttle` to create a transparent proxy tunnel over SSH. All 
 That's it! Your traffic is now routed through the Android device.
 
 ## Usage
-
 To stop the connection, simply press `Ctrl+C` in the terminal where `connect.sh` is running. `sshuttle` safely restores your network settings automatically.
+
+## GUI Application (New)
+
+We now have a modern Desktop GUI for easier connection!
+
+### Prerequisites
+* Python 3
+* `pip`
+
+### Installation
+1. Navigate to the client directory:
+   ```bash
+   cd client
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Usage
+Run the app:
+```bash
+python3 vpn_share_app.py
+```
+1. Click **Scan** to find your Android device on the local network.
+2. Select the device IP.
+3. Enter the standard username (e.g., u0_a...) found on the Android server screen.
+4. Click **Connect**. This will launch a terminal window asking for your password (if necessary) to start the connection.
+
+### Standalone Application (Linux)
+If you have the standalone single-file executable (usually provided in `dist/`):
+1. Navigate to the `dist` folder.
+   ```bash
+   cd dist
+   ```
+2. Make it executable (if not already):
+   ```bash
+   chmod +x vpnshare
+   ```
+3. Run it:
+   ```bash
+   ./vpnshare
+   ```
+
+### Building from Source
+To create the standalone executable yourself:
+1. Install PyInstaller:
+   ```bash
+   pip install pyinstaller
+   ```
+2. Run the build command (from the project root):
+   ```bash
+   pyinstaller VPNShare.spec
+   ```
+   The output binary will be in `dist/vpnshare`.
 
 ## ⚠️ Warning
 
